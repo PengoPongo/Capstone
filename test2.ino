@@ -122,7 +122,7 @@ void displayHomeScreen() {
 
   // Box for clock (lower box)
   int clockBoxY = boxY + boxHeight + gap + 10;
-  tft.drawRect(boxX, clockBoxY, boxWidth, boxHeight, HX8357_BLACK);
+  tft.drawRect(boxX, clockBoxY, boxWidth, boxHeight, HX8357_BLACK); 
 
   // Draw a large circle in the second box that almost touches the bounds
   int largeCircleRadius = boxWidth / 2 - 10;  // Radius slightly smaller than the box
