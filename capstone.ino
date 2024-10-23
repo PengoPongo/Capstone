@@ -1,7 +1,7 @@
 #include <SPI.h>
 #include "Adafruit_GFX.h"
 #include "Adafruit_HX8357.h"
-#include <Fonts/FreeSansBold12pt7b.h>  // Include the font header file
+#include <Fonts/FreeSans9pt7b.h>  // Include the font header file
 
 // Pin definitions for the display
 #define TFT_CS 10
@@ -35,6 +35,10 @@ void setup() {
 
   // Clear the screen
   tft.fillScreen(HX8357_WHITE);
+
+  // Set font to FreeSansBold12pt7b
+  tft.setFont(&FreeSans9pt7b);
+  tft.setTextSize(6);
 
   // Set button pins as input
   pinMode(buttonPin1, INPUT);
@@ -92,7 +96,7 @@ void displayHomeScreen() {
   tft.fillScreen(HX8357_WHITE);
 
   // Set font to FreeSansBold12pt7b
-  tft.setFont(&FreeSansBold12pt7b);
+  //tft.setFont(&FreeSans9pt7b);
 
   // Draw green bar and text at the top
   tft.fillRect(0, 0, tft.width(), 50, tft.color565(0xD1, 0x2A, 0x2A));  // Red bar 50px high
@@ -158,7 +162,7 @@ void displayImageSelectionScreen() {
   tft.fillScreen(HX8357_WHITE);
 
   // Set font to FreeSansBold12pt7b
-  tft.setFont(&FreeSansBold12pt7b);
+  //tft.setFont(&FreeSans9pt7b);
 
   // Draw green bar and text at the top
   tft.fillRect(0, 0, tft.width(), 50, tft.color565(0x36, 0xD6, 0x36));  // Green bar 50px high
@@ -180,30 +184,44 @@ void displayImageSelectionScreen() {
   tft.println("Press the Image Select button to cycle through images");
 }
 
-// Function for the timer screen
 void displayTimerScreen() {
   tft.fillScreen(HX8357_WHITE);
 
   // Set font to FreeSansBold12pt7b
-  tft.setFont(&FreeSansBold12pt7b);
+  //tft.setFont(&FreeSans9pt7b);
 
   // Draw blue bar and text at the top
   tft.fillRect(0, 0, tft.width(), 50, tft.color565(0x5B, 0x5B, 0xFF));  // Blue bar 50px high
   displayTitle("Timer");
 
-  // Draw the largest possible hollow circle in the center of the screen
-  int radius = min(tft.width(), tft.height()) / 2 - 10;  // Increased size by reducing padding
-  for (int i = 0; i < 3; i++) {
-    tft.drawCircle(tft.width() / 2, tft.height() / 2 + 20, radius + i, tft.color565(0x5B, 0x5B, 0xFF));
-  }
+  // Draw the filled blue circle in the center of the screen
+  int radius = min(tft.width(), tft.height()) / 2 - 10;  // Reduced padding for larger size
+  tft.fillCircle(tft.width() / 2, tft.height() / 2 + 20, radius, tft.color565(0x5B, 0x5B, 0xFF));
 
-  // Add any additional timer functionality here
+  // Draw black outline around the circle
+  tft.drawCircle(tft.width() / 2, tft.height() / 2 + 20, radius, HX8357_BLACK);
+
+  // Draw the spokes (lines converging to the center)
+  int centerX = tft.width() / 2;
+  int centerY = tft.height() / 2 + 20;
+  int numSpokes = 24;  // Number of spokes
+  for (int i = 0; i < numSpokes; i++) {
+    // Calculate angle for each spoke
+    float angle = 2 * PI * i / numSpokes;
+    
+    // Calculate x and y coordinates for the end of each spoke
+    int xEnd = centerX + radius * cos(angle);
+    int yEnd = centerY + radius * sin(angle);
+    
+    // Draw the spoke
+    tft.drawLine(centerX, centerY, xEnd, yEnd, HX8357_BLACK);
+  }
 }
 
 // Helper function to display a title at the top of the screen
 void displayTitle(const char* title) {
   // Set font to FreeSansBold12pt7b
-  tft.setFont(&FreeSansBold12pt7b);
+  //tft.setFont(&FreeSans9pt7b);
   tft.setTextColor(HX8357_BLACK);
   tft.setTextSize(3);
 
