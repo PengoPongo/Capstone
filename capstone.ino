@@ -1,7 +1,6 @@
 #include <SPI.h>
 #include "Adafruit_GFX.h"
 #include "Adafruit_HX8357.h"
-#include <Fonts/FreeSans9pt7b.h>  // Include the font header file
 
 // Pin definitions for the display
 #define TFT_CS 10
@@ -31,14 +30,10 @@ void setup() {
   tft.begin();
 
   // Set the screen rotation (optional, can be adjusted)
-  tft.setRotation(0);
+  tft.setRotation(2);
 
   // Clear the screen
   tft.fillScreen(HX8357_WHITE);
-
-  // Set font to FreeSansBold12pt7b
-  tft.setFont(&FreeSans9pt7b);
-  tft.setTextSize(6);
 
   // Set button pins as input
   pinMode(buttonPin1, INPUT);
@@ -95,25 +90,45 @@ void displayCurrentState() {
 void displayHomeScreen() {
   tft.fillScreen(HX8357_WHITE);
 
-  // Set font to FreeSansBold12pt7b
-  //tft.setFont(&FreeSans9pt7b);
-
   // Draw green bar and text at the top
-  tft.fillRect(0, 0, tft.width(), 50, tft.color565(0xD1, 0x2A, 0x2A));  // Red bar 50px high
   displayTitle("Home");
 
-  // Draw two small rounded boxes (one above the other)
+  // Define the sizes and positions for the boxes
   int boxWidth = 100;
   int boxHeight = 100;
   int gap = 60; // Gap for text between the boxes
   int boxX = (tft.width() - boxWidth) / 2;
   int boxY = 80;
+  int shadowOffset = 7; // Offset for shadow
 
-  // Draw rounded filled rectangles for camera (upper box) and clock (lower box)
-  tft.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 15, tft.color565(0x36, 0xD6, 0x36));  // Filled green box
-  tft.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 15, HX8357_BLACK);  // Outline for the box
+  // --- First Box (upper) with shadow and thicker outline ---
+  // Draw shadow (slightly offset version of the box)
+  tft.fillRoundRect(boxX + shadowOffset, boxY + shadowOffset, boxWidth, boxHeight, 15, tft.color565(0xc9, 0xc9, 0xc9));
 
-  // Draw small circle in the center of the first box
+  // Draw filled green box
+  tft.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 15, tft.color565(0x36, 0xD6, 0x36));
+
+  // Draw thicker black outline around the first box by drawing multiple outlines
+  for (int i = 0; i < 3; i++) {
+    tft.drawRoundRect(boxX - i, boxY - i, boxWidth + 2 * i, boxHeight + 2 * i, 15 + i, HX8357_BLACK);
+  }
+
+  // --- Second Box (lower) with shadow and thicker outline ---
+  // Calculate Y position for the second box
+  int clockBoxY = boxY + boxHeight + gap + 10;
+
+  // Draw shadow (slightly offset version of the box)
+  tft.fillRoundRect(boxX + shadowOffset, clockBoxY + shadowOffset, boxWidth, boxHeight, 15, tft.color565(0xc9, 0xc9, 0xc9));
+
+  // Draw filled blue box
+  tft.fillRoundRect(boxX, clockBoxY, boxWidth, boxHeight, 15, tft.color565(0x5B, 0x5B, 0xFF));
+
+  // Draw thicker black outline around the second box by drawing multiple outlines
+  for (int i = 0; i < 3; i++) {
+    tft.drawRoundRect(boxX - i, clockBoxY - i, boxWidth + 2 * i, boxHeight + 2 * i, 15 + i, HX8357_BLACK);
+  }
+
+  // Draw a small circle in the center of the first box
   int circleRadius = 15;  // Adjust size of the circle
   int circleX = boxX + boxWidth / 2;
   int circleY = boxY + boxHeight / 2;
@@ -128,11 +143,6 @@ void displayHomeScreen() {
   // Draw a small square above the rectangle in the top-left corner
   int squareSize = 10;
   tft.fillRect(circleX - circleRadius - rectPaddingX, circleY - circleRadius - rectPaddingY - squareSize, squareSize + 8, squareSize, HX8357_BLACK);
-
-  // Draw the lower box (clock) with rounded corners
-  int clockBoxY = boxY + boxHeight + gap + 10;
-  tft.fillRoundRect(boxX, clockBoxY, boxWidth, boxHeight, 15, tft.color565(0x5B, 0x5B, 0xFF));  // Filled blue box
-  tft.drawRoundRect(boxX, clockBoxY, boxWidth, boxHeight, 15, HX8357_BLACK);  // Outline for the box
 
   // Draw a large circle in the second box
   int largeCircleRadius = boxWidth / 2 - 10;
@@ -149,23 +159,19 @@ void displayHomeScreen() {
 
   // Display text between the two boxes
   tft.setTextSize(2);
-  tft.setCursor(20, boxY + boxHeight + 10);  // Text between boxes
-  tft.println("Press the image select button to change the image");
+  tft.setCursor(70, boxY + boxHeight + 10);  // Text between boxes
+  tft.println("Image Selection");
 
   // Text below the second box
-  tft.setCursor(20, clockBoxY + boxHeight + 20);
-  tft.println("Press the timer button to go to the timer countdown");
+  tft.setCursor(70, clockBoxY + boxHeight + 20);
+  tft.println("Timer Countdown");
 }
 
 // Function for the image selection screen
 void displayImageSelectionScreen() {
   tft.fillScreen(HX8357_WHITE);
 
-  // Set font to FreeSansBold12pt7b
-  //tft.setFont(&FreeSans9pt7b);
-
   // Draw green bar and text at the top
-  tft.fillRect(0, 0, tft.width(), 50, tft.color565(0x36, 0xD6, 0x36));  // Green bar 50px high
   displayTitle("Image Selection");
 
   // Draw the largest possible hollow circle in the center of the screen
@@ -174,24 +180,17 @@ void displayImageSelectionScreen() {
     tft.drawCircle(tft.width() / 2, tft.height() / 2 + 20, radius + i, HX8357_BLACK); 
   }
 
-  // Display text above the circle (Reset button)
+  // Display text above the circle
   tft.setTextSize(2);
-  tft.setCursor(20, tft.height() / 2 - radius - 20);
-  tft.println("Press the reset button to go back to the Home menu");
-
-  // Display text below the circle (Image selection)
-  tft.setCursor(20, tft.height() - 50);
-  tft.println("Press the Image Select button to cycle through images");
+  tft.setCursor(30, tft.height() / 2 - radius - 20);
+  tft.println("Displayed is your image");
 }
 
+//Displays the Timer Screen
 void displayTimerScreen() {
   tft.fillScreen(HX8357_WHITE);
 
-  // Set font to FreeSansBold12pt7b
-  //tft.setFont(&FreeSans9pt7b);
-
   // Draw blue bar and text at the top
-  tft.fillRect(0, 0, tft.width(), 50, tft.color565(0x5B, 0x5B, 0xFF));  // Blue bar 50px high
   displayTitle("Timer");
 
   // Draw the filled blue circle in the center of the screen
@@ -199,36 +198,78 @@ void displayTimerScreen() {
   tft.fillCircle(tft.width() / 2, tft.height() / 2 + 20, radius, tft.color565(0x5B, 0x5B, 0xFF));
 
   // Draw black outline around the circle
-  tft.drawCircle(tft.width() / 2, tft.height() / 2 + 20, radius, HX8357_BLACK);
+  for (int i = 0; i <= 3; i++) {  // Adjust the loop to make the outline thicker (increase 'i' for more thickness)
+    tft.drawCircle(tft.width() / 2, tft.height() / 2 + 20, radius + i, HX8357_BLACK);
+  }
 
-  // Draw the spokes (lines converging to the center)
+  // Draw the reversed spokes (lines starting near the edge and going inward)
   int centerX = tft.width() / 2;
   int centerY = tft.height() / 2 + 20;
   int numSpokes = 24;  // Number of spokes
   for (int i = 0; i < numSpokes; i++) {
     // Calculate angle for each spoke
     float angle = 2 * PI * i / numSpokes;
-    
-    // Calculate x and y coordinates for the end of each spoke
-    int xEnd = centerX + radius * cos(angle);
-    int yEnd = centerY + radius * sin(angle);
-    
-    // Draw the spoke
-    tft.drawLine(centerX, centerY, xEnd, yEnd, HX8357_BLACK);
+
+    // Choose spoke length factor based on whether the index is odd or even
+    float spokeLengthFactor = (i % 2 == 0) ? 0.9 : 0.8;
+
+    // Calculate x and y coordinates for the start of each spoke (near the edge)
+    int xStart = centerX + radius * cos(angle);
+    int yStart = centerY + radius * sin(angle);
+
+    // Calculate x and y coordinates for the end of each spoke (closer to the center)
+    int xEnd = centerX + radius * spokeLengthFactor * cos(angle);
+    int yEnd = centerY + radius * spokeLengthFactor * sin(angle);
+
+    // Draw the thicker reversed spoke (from outer to inner) by drawing multiple parallel lines
+    for (int thickness = -1; thickness <= 1; thickness++) {
+      tft.drawLine(xStart + thickness * cos(angle + PI / 2), yStart + thickness * sin(angle + PI / 2),
+                   xEnd + thickness * cos(angle + PI / 2), yEnd + thickness * sin(angle + PI / 2), HX8357_BLACK);
+
+    // Display text above the circle (Reset button)
+    tft.setTextSize(2);
+    tft.setCursor(30, tft.height() / 2 - radius - 20);
+    tft.println("Time Set to __ minutes");
+    }
   }
 }
 
-// Helper function to display a title at the top of the screen
+// Helper function to display a title at the top of the screen with shadow and different bar colors
 void displayTitle(const char* title) {
-  // Set font to FreeSansBold12pt7b
-  //tft.setFont(&FreeSans9pt7b);
+
+  // Define bar height and shadow offset
+  int barHeight = 40;
+  int shadowOffset = 3; // Offset for shadow
+  
+  // Set the color for each screen based on the title
+  uint16_t barColor;
+  if (strcmp(title, "Home") == 0) {
+    barColor = tft.color565(0xD1, 0x2A, 0x2A);  // Red for Home
+  } else if (strcmp(title, "Image Selection") == 0) {
+    barColor = tft.color565(0x36, 0xD6, 0x36);  // Green for Image Selection
+  } else if (strcmp(title, "Timer") == 0) {
+    barColor = tft.color565(0x5B, 0x5B, 0xFF);  // Blue for Timer
+  } else {
+    barColor = HX8357_BLACK;  // Default color if title doesn't match any known screen
+  }
+
+  // Draw the shadow (slightly offset version of the bar)
+  tft.fillRect(0 + shadowOffset, 0 + shadowOffset, tft.width(), barHeight, tft.color565(0xc9, 0xc9, 0xc9));  // Light grey shadow
+  
+  // Draw the main colored bar (original position)
+  tft.fillRect(0, 0, tft.width(), barHeight, barColor);  // Colored bar depending on the screen
+
+  // Set the text color and size
   tft.setTextColor(HX8357_BLACK);
   tft.setTextSize(3);
 
-  // Calculate the width of the title and center it
+  // Calculate the width of the title text to center it
   int16_t x1, y1;
   uint16_t w, h;
   tft.getTextBounds(title, 0, 0, &x1, &y1, &w, &h);
+
+  // Display the title text centered at the top
   tft.setCursor((tft.width() - w) / 2, 10);
   tft.println(title);
 }
+
