@@ -1,15 +1,15 @@
 import pygame
 import math
+import os
 from sys import exit
 
 pygame.init()
-screen = pygame.display.set_mode((800, 480))  # Setting screen size
-pygame.display.set_caption('Capstone')  # Name of window
+screen = pygame.display.set_mode((800, 480),pygame.NOFRAME)  # Setting screen size
 clock = pygame.time.Clock()  # Sets up clock in project
 
 # Define colors
 WHITE = pygame.Color('antiquewhite')
-BLACK = pygame.Color(0, 0, 0)
+BLACK = pygame.Color('grey14')
 RED = pygame.Color('brown1')
 DARKRED = pygame.Color('brown4')
 GREEN = pygame.Color('seagreen3')
@@ -21,6 +21,16 @@ GRAY = pygame.Color('antiquewhite3')
 # Define states
 HOME, IMAGE_SELECTION, TIMER = 0, 1, 2
 current_state = HOME
+
+# Load image filenames from the "Image" folder
+image_folder = "Image"      # file path to images
+image_files = []            # array to store image names
+current_image_index = 0
+
+# Get all files in the "Image" folder and filter for image files (e.g., .png, .jpg)
+for filename in os.listdir(image_folder):
+    if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp')):
+        image_files.append(filename)
 
 # Function to display a title bar with shadow
 def display_title(title, color, border):
@@ -55,11 +65,11 @@ def display_home_screen():
 
     # Load and position icons on buttons
     timer_UI = pygame.image.load('UI/timer.PNG')
-    timer_UI = pygame.transform.scale(timer_UI, (150, 150))
+    timer_UI = pygame.transform.smoothscale(timer_UI, (150, 150))
     screen.blit(timer_UI, (timer_button.centerx - 75, timer_button.centery - 75))  # Center the image
 
     camera_UI = pygame.image.load('UI/camera.PNG')
-    camera_UI = pygame.transform.scale(camera_UI, (150, 150))
+    camera_UI = pygame.transform.smoothscale(camera_UI, (150, 150))
     screen.blit(camera_UI, (image_button.centerx - 75, image_button.centery - 75))  # Center the image
 
     # Add text under each button
@@ -72,8 +82,7 @@ def display_home_screen():
 
 # Image selection screen display function
 def display_image_selection_screen():
-    global home_button, timer_button
-
+    global home_button, timer_button, current_image_index, left_rect, right_rect
     screen.fill(WHITE)
     display_title("Image Selection", GREEN, DARKGREEN)
 
@@ -82,9 +91,9 @@ def display_image_selection_screen():
     timer_button = pygame.Rect(5, 135, button_width, button_height)  # Timer button
     side_bar = pygame.Rect(-15, 60, 80, 135)
 
-    # Draw side bar  with shadow, color, and outline
+    # Draw side bar with shadow, color, and outline
     pygame.draw.rect(screen, GRAY, side_bar.move(5, 5), border_radius=15)
-    pygame.draw.rect(screen, DARKGREEN, side_bar.inflate(5,5), border_radius=17)
+    pygame.draw.rect(screen, DARKGREEN, side_bar.inflate(5, 5), border_radius=17)
     pygame.draw.rect(screen, GREEN, side_bar, border_radius=15)
 
     # Draw home button with color and outline
@@ -96,16 +105,69 @@ def display_image_selection_screen():
     pygame.draw.rect(screen, DARKBLUE, timer_button.inflate(6, 6), 3, border_radius=18)  # Outline
 
     # Load and position icons on buttons
-    timer_UI = pygame.image.load('UI/timer.PNG')
-    timer_UI = pygame.transform.scale(timer_UI, (45, 45))
+    timer_UI = pygame.image.load('UI/timer.png')
+    timer_UI = pygame.transform.smoothscale(timer_UI, (45, 45))
     screen.blit(timer_UI, (timer_button.centerx - 23, timer_button.centery - 23))  # Center the image
 
-    home_UI = pygame.image.load('UI/home.PNG')
-    home_UI = pygame.transform.scale(home_UI, (40, 40))
+    home_UI = pygame.image.load('UI/home.png')
+    home_UI = pygame.transform.smoothscale(home_UI, (40, 40))
     screen.blit(home_UI, (home_button.centerx - 20, home_button.centery - 20))  # Center the image
 
-    # Large circle in center
-    pygame.draw.circle(screen, BLACK, (400, 260), 200, 3)
+    left_UI = pygame.image.load('UI/left.png')
+    left_UI = pygame.transform.smoothscale(left_UI, (75, 75))
+    left_rect = screen.blit(left_UI, (100, 223))
+
+    right_UI = pygame.image.load('UI/right.png')
+    right_UI = pygame.transform.smoothscale(right_UI, (75, 75))
+    right_rect = screen.blit(right_UI, (620, 225))
+
+    # Display the current image in the center of the circle (if available)
+    if image_files:
+        current_image_path = os.path.join(image_folder, image_files[current_image_index])  # Get path of current image
+        try:
+            # Load the image
+            image = pygame.image.load(current_image_path)
+            # Scale it to fit the circle
+            image = pygame.transform.smoothscale(image, (275, 275))
+            # Draw the image in the center of the circle (400, 260 is the center of the circle)
+            screen.blit(image, (400 - image.get_width() // 2, 260 - image.get_height() // 2))
+        except Exception as e:
+            print(f"Error loading image {current_image_path}: {e}")
+
+    # Display "Preview of [current image]" text under the circle
+    font = pygame.font.Font(None, 24)
+    if image_files:
+        preview_text = f"Preview of {image_files[current_image_index]}"
+    else:
+        preview_text = "No images available"
+    text = font.render(preview_text, True, DARKGREEN)
+    screen.blit(text, (400 - text.get_width() // 2, 462))  # Center the text under the circle
+
+    # Filled circle with outline
+    circle_border = pygame.draw.circle(screen, DARKGREEN, (400, 260), 200, 5)
+
+    # Add twelve spokes (for visual decoration)
+    center_x, center_y = 400, 260
+    radius = 195
+    even_spoke_length = 25
+    odd_spoke_length = 15
+
+    for i in range(24):
+        angle = math.radians(i * 15)  # 360 degrees divided by 24 = 15 degrees per spoke
+
+        # Determine if it's an odd or even spoke to choose length
+        if i % 2 == 0:  # Even spokes
+            spoke_length = even_spoke_length
+        else:  # Odd spokes
+            spoke_length = odd_spoke_length
+
+        start_x = center_x + radius * math.cos(angle)
+        start_y = center_y + radius * math.sin(angle)
+        end_x = center_x + (radius - spoke_length) * math.cos(angle)
+        end_y = center_y + (radius - spoke_length) * math.sin(angle)
+
+        # Draw the line (spoke) from the edge of the circle towards the center
+        pygame.draw.line(screen, DARKGREEN, (start_x, start_y), (end_x, end_y), 3)
 
 
 # Timer screen display function
@@ -135,27 +197,52 @@ def display_timer_screen():
 
     # Load and position icons on buttons
     home_UI = pygame.image.load('UI/home.PNG')
-    home_UI = pygame.transform.scale(home_UI, (40, 40))
+    home_UI = pygame.transform.smoothscale(home_UI, (40, 40))
     screen.blit(home_UI, (home_button.centerx - 20, home_button.centery - 20))  # Center the image
 
     image_UI = pygame.image.load('UI/camera.PNG')
-    image_UI = pygame.transform.scale(image_UI, (45, 45))
-    screen.blit(image_UI,(image_button.centerx - 23, image_button.centery - 23))  # Center the image
+    image_UI = pygame.transform.smoothscale(image_UI, (45, 45))
+    screen.blit(image_UI, (image_button.centerx - 23, image_button.centery - 23))  # Center the image
 
     # Filled circle with outline
     pygame.draw.circle(screen, BLUE, (400, 260), 200)
-    circle_border = pygame.draw.circle(screen, BLACK, (400, 260), 200, 3)
-    timer_image = pygame.image.load('Image/blinka.JPG')
-    screen.blit(timer_image, (400 - (timer_image.get_width() / 2), 260 - (timer_image.get_height() / 2)))
+    circle_border = pygame.draw.circle(screen, DARKBLUE, (400, 260), 200, 5)
 
-    # Add twelve spokes
+    # Display the current image in the center of the circle (if available)
+    if image_files:
+        current_image_path = os.path.join(image_folder, image_files[current_image_index])  # Get path of current image
+        try:
+            # Load the image
+            image = pygame.image.load(current_image_path)
+            # Scale it to fit the circle
+            image = pygame.transform.smoothscale(image, (275, 275))
+            # Draw the image in the center of the circle (400, 260 is the center of the circle)
+            screen.blit(image, (400 - image.get_width() // 2, 260 - image.get_height() // 2))
+        except Exception as e:
+            print(f"Error loading image {current_image_path}: {e}")
+
+    # Add twelve spokes (for visual decoration)
     center_x, center_y = 400, 260
-    radius = 200
+    radius = 195
+    even_spoke_length = 25
+    odd_spoke_length = 15
+
     for i in range(24):
         angle = math.radians(i * 15)  # 360 degrees divided by 24 = 15 degrees per spoke
-        end_x = center_x + radius * math.cos(angle)
-        end_y = center_y + radius * math.sin(angle)
-        pygame.draw.line(screen, BLACK, (center_x, center_y), (end_x, end_y), 3)
+
+        # Determine if it's an odd or even spoke to choose length
+        if i % 2 == 0:  # Even spokes
+            spoke_length = even_spoke_length
+        else:  # Odd spokes
+            spoke_length = odd_spoke_length
+
+        start_x = center_x + radius * math.cos(angle)
+        start_y = center_y + radius * math.sin(angle)
+        end_x = center_x + (radius - spoke_length) * math.cos(angle)
+        end_y = center_y + (radius - spoke_length) * math.sin(angle)
+
+        # Draw the line (spoke) from the edge of the circle towards the center
+        pygame.draw.line(screen, DARKBLUE, (start_x, start_y), (end_x, end_y), 3)
 
     # Display text
     font = pygame.font.Font(None, 36)
@@ -167,9 +254,10 @@ def display_timer_screen():
 # Main loop
 while True:
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:  # Escape key pressed
+                pygame.quit()
+                exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:  # Detect mouse click
             mouse_x, mouse_y = event.pos
             if current_state == HOME:
@@ -182,6 +270,12 @@ while True:
                     current_state = HOME
                 elif timer_button.collidepoint(mouse_x, mouse_y):  # Click on Timer button
                     current_state = TIMER
+                elif left_rect.collidepoint(event.pos): # Check if left button was clicked
+                    # Move to previous image, wrap around if at the start
+                    current_image_index = (current_image_index - 1) % len(image_files)
+                elif right_rect.collidepoint(event.pos): # Check if right button was clicked
+                    # Move to next image, wrap around if at the end
+                    current_image_index = (current_image_index + 1) % len(image_files)
             elif current_state == TIMER:
                 if home_button.collidepoint(mouse_x, mouse_y):  # Click on Home button
                     current_state = HOME
