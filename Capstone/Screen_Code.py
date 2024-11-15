@@ -7,12 +7,13 @@ pygame.display.set_caption('Capstone')      # name of window
 clock = pygame.time.Clock()     # sets up clock in project
 
 # Define colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (209, 42, 42)
-GREEN = (54, 214, 54)
-BLUE = (91, 91, 255)
-GRAY = (201, 201, 201)
+WHITE =  pygame.Color('antiquewhite')
+BLACK =  pygame.Color(0, 0, 0)
+RED = pygame.Color('brown1')
+GREEN =  pygame.Color('seagreen3')
+BLUE =  pygame.Color('cyan3')
+GRAY =  pygame.Color('antiquewhite3')
+
 
 # Define states
 HOME, IMAGE_SELECTION, TIMER = 0, 1, 2
@@ -80,7 +81,7 @@ def display_timer_screen():
     # Filled circle with outline
     pygame.draw.circle(screen, BLUE, (400, 260), 200)
     circle_border = pygame.draw.circle(screen, BLACK, (400, 260), 200, 3)
-    timer_image = pygame.image.load('Image/dog.PNG')
+    timer_image = pygame.image.load('C:/Users/Davin/OneDrive/Desktop/art stuff/fishmael.PNG')
     screen.blit(timer_image, (400-(timer_image.get_width()/2),260-(timer_image.get_height()/2)))
 
     # Display text
