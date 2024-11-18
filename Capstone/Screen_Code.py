@@ -22,6 +22,7 @@ GRAY = pygame.Color('antiquewhite3')
 # Define states
 HOME, IMAGE_SELECTION, TIMER = 0, 1, 2
 current_state = HOME
+start = False
 
 # Load image filenames from the "Image" folder
 image_folder = "Image"      # file path to images
@@ -189,7 +190,7 @@ def display_image_selection_screen():
 
 # Updated Timer screen display function
 def display_timer_screen():
-    global image_button, home_button, plus_button, minus_button
+    global image_button, home_button, plus_button, minus_button, play_button, stop_button, reset_button,timer_minutes, state
 
     screen.fill(WHITE)
     display_title("Timer", BLUE, DARKBLUE)
@@ -221,8 +222,9 @@ def display_timer_screen():
     image_UI = pygame.transform.smoothscale(image_UI, (45, 45))
     screen.blit(image_UI, (image_button.centerx - 23, image_button.centery - 23))  # Center the image
 
+    #sets up the code for the plus and minus buttons
     plus_button = pygame.Rect(680, 185, 45, 45)  # Plus button
-    minus_button = pygame.Rect(680, 300, 45, 45)  # Minus button
+    minus_button = pygame.Rect(680, 295, 45, 45)  # Minus button
 
     plus_UI = pygame.image.load('UI/plus.png')
     plus_UI = pygame.transform.smoothscale(plus_UI, (45, 45))
@@ -231,6 +233,38 @@ def display_timer_screen():
     minus_UI = pygame.image.load('UI/minus.png')
     minus_UI = pygame.transform.smoothscale(minus_UI, (45, 45))
     screen.blit(minus_UI, minus_button.topleft)  # Use rect to position
+
+    #sets up the play, stop, reset buttons
+    play_button = pygame.Rect(110, 145, 45, 45)  # play button
+    stop_button = pygame.Rect(110, 235, 45, 45)  # stop button
+    reset_button = pygame.Rect(110, 325, 45, 45)  # reset button
+
+    font = pygame.font.Font(None, 30)
+    play_text = font.render('Play', True, DARKBLUE)
+    screen.blit(play_text, (115, 125))  # Center the text under the circle
+    play_UI = pygame.image.load('UI/play.png')
+    play_UI = pygame.transform.smoothscale(play_UI, (50, 50))
+    screen.blit(play_UI, play_button.topleft)  # Use rect to position
+
+    play_text = font.render('Stop', True, DARKBLUE)
+    screen.blit(play_text, (114, 215))  # Center the text under the circle
+    stop_UI = pygame.image.load('UI/stop.png')
+    stop_UI = pygame.transform.smoothscale(stop_UI, (50, 50))
+    screen.blit(stop_UI, stop_button.topleft)  # Use rect to position
+
+    play_text = font.render('Reset', True, DARKBLUE)
+    screen.blit(play_text, (107, 305))  # Center the text under the circle
+    reset_UI = pygame.image.load('UI/reset.png')
+    reset_UI = pygame.transform.smoothscale(reset_UI, (50, 50))
+    screen.blit(reset_UI, reset_button.topleft)  # Use rect to position
+
+    if start == True:
+        ticks = pygame.time.get_ticks()
+        seconds = int(ticks / 1000 % 60)
+        minutes = int(ticks / 60000 % 24)
+        font = pygame.font.Font(None, 36)
+        out = font.render(f"{minutes} minutes and {seconds} seconds", True, DARKBLUE)
+        screen.blit(out, (50, 455))
 
     pygame.draw.circle(screen, GRAY, (403, 263), 200, 5)
 
@@ -282,6 +316,7 @@ def display_timer_screen():
 
 # Main loop
 while True:
+    font = pygame.font.Font(None, 36)
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:  # Escape key pressed
@@ -310,10 +345,16 @@ while True:
                     current_state = HOME
                 elif image_button.collidepoint(mouse_x, mouse_y):  # Click on Image Selection button
                     current_state = IMAGE_SELECTION
-                elif plus_button.collidepoint(mouse_x, mouse_y):  # Click on Plus button
+                elif play_button.collidepoint(mouse_x, mouse_y):    # Click on play button
+                    start = True
+                elif stop_button.collidepoint(mouse_x, mouse_y) and start == True:    # Click on stop button
+                    start = False
+                elif reset_button.collidepoint(mouse_x, mouse_y) and start == True:
+                    start = False
+                elif plus_button.collidepoint(mouse_x, mouse_y) and start == False:  # Click on Plus button
                     if timer_minutes < 60:
                         timer_minutes += 5
-                elif minus_button.collidepoint(mouse_x, mouse_y):  # Click on Minus button
+                elif minus_button.collidepoint(mouse_x, mouse_y) and start == False:  # Click on Minus button
                     if timer_minutes > 5:
                         timer_minutes -= 5
 
