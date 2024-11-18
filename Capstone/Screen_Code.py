@@ -6,7 +6,6 @@ from sys import exit
 pygame.init()
 screen = pygame.display.set_mode((800, 480),pygame.NOFRAME)  # Setting screen size
 clock = pygame.time.Clock()  # Sets up clock in project
-timer_minutes = 60  # time for clock
 
 # Define colors
 WHITE = pygame.Color('antiquewhite')
@@ -22,7 +21,11 @@ GRAY = pygame.Color('antiquewhite3')
 # Define states
 HOME, IMAGE_SELECTION, TIMER = 0, 1, 2
 current_state = HOME
-start = False
+timer_running = False
+timer_seconds = 0
+time_set = 60    # default time for clock
+timer_minutes = time_set
+finish = True
 
 # Load image filenames from the "Image" folder
 image_folder = "Image"      # file path to images
@@ -190,7 +193,8 @@ def display_image_selection_screen():
 
 # Updated Timer screen display function
 def display_timer_screen():
-    global image_button, home_button, plus_button, minus_button, play_button, stop_button, reset_button,timer_minutes, state
+    global image_button, home_button, plus_button, minus_button, play_button, stop_button, reset_button
+    global timer_minutes, timer_seconds, start, timer_running, time_set, finish
 
     screen.fill(WHITE)
     display_title("Timer", BLUE, DARKBLUE)
@@ -258,13 +262,22 @@ def display_timer_screen():
     reset_UI = pygame.transform.smoothscale(reset_UI, (50, 50))
     screen.blit(reset_UI, reset_button.topleft)  # Use rect to position
 
-    if start == True:
-        ticks = pygame.time.get_ticks()
-        seconds = int(ticks / 1000 % 60)
-        minutes = int(ticks / 60000 % 24)
-        font = pygame.font.Font(None, 36)
-        out = font.render(f"{minutes} minutes and {seconds} seconds", True, DARKBLUE)
-        screen.blit(out, (50, 455))
+    # rn it set to seconds and milliseconds change to be minutes and seconds
+    # Countdown logic
+    if timer_running:
+        if timer_seconds > 0:
+            timer_seconds -= 1
+        elif timer_minutes > 0:
+            timer_minutes -= 1
+            timer_seconds = 59
+        else:
+            timer_running = False  # Stop timer when it reaches zero
+            finish = True
+
+    # Display timer
+    time_text = font.render(f"{timer_minutes:02}:{timer_seconds:02}", True, DARKBLUE)
+    screen.blit(time_text, (50, 455))
+
 
     pygame.draw.circle(screen, GRAY, (403, 263), 200, 5)
 
@@ -310,7 +323,7 @@ def display_timer_screen():
 
     # Display the timer text
     font = pygame.font.Font(None, 36)
-    text = font.render(f"{timer_minutes} minutes", True, DARKBLUE)
+    text = font.render(f"{time_set} minutes", True, DARKBLUE)
     screen.blit(text, (640, 250))
 
 
@@ -346,17 +359,22 @@ while True:
                 elif image_button.collidepoint(mouse_x, mouse_y):  # Click on Image Selection button
                     current_state = IMAGE_SELECTION
                 elif play_button.collidepoint(mouse_x, mouse_y):    # Click on play button
-                    start = True
-                elif stop_button.collidepoint(mouse_x, mouse_y) and start == True:    # Click on stop button
-                    start = False
-                elif reset_button.collidepoint(mouse_x, mouse_y) and start == True:
-                    start = False
-                elif plus_button.collidepoint(mouse_x, mouse_y) and start == False:  # Click on Plus button
-                    if timer_minutes < 60:
-                        timer_minutes += 5
-                elif minus_button.collidepoint(mouse_x, mouse_y) and start == False:  # Click on Minus button
-                    if timer_minutes > 5:
-                        timer_minutes -= 5
+                    timer_running = True
+                    finish = False
+                elif stop_button.collidepoint(mouse_x, mouse_y) and timer_running == True:    # Click on stop button
+                    timer_running = False
+                elif reset_button.collidepoint(mouse_x, mouse_y):
+                    # add a way to reset the timer countdown
+                    timer_running = False
+                    finish = True
+                elif plus_button.collidepoint(mouse_x, mouse_y) and finish == True:  # Click on Plus button
+                    if time_set < 60:
+                        time_set += 5
+                        timer_minutes = time_set
+                elif minus_button.collidepoint(mouse_x, mouse_y) and finish == True:  # Click on Minus button
+                    if time_set > 5:
+                        time_set -= 5
+                        timer_minutes = time_set
 
     # Display the current screen based on state
     if current_state == HOME:
