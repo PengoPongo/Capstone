@@ -21,6 +21,7 @@ GRAY = pygame.Color('antiquewhite3')
 # Define states
 HOME, IMAGE_SELECTION, TIMER = 0, 1, 2
 current_state = HOME
+last_update_time = pygame.time.get_ticks()  # Record initial time
 timer_running = False
 timer_seconds = 0
 time_set = 60    # default time for clock
@@ -194,7 +195,7 @@ def display_image_selection_screen():
 # Updated Timer screen display function
 def display_timer_screen():
     global image_button, home_button, plus_button, minus_button, play_button, stop_button, reset_button
-    global timer_minutes, timer_seconds, start, timer_running, time_set, finish
+    global timer_minutes, timer_seconds, timer_running, time_set, finish, last_update_time
 
     screen.fill(WHITE)
     display_title("Timer", BLUE, DARKBLUE)
@@ -262,22 +263,26 @@ def display_timer_screen():
     reset_UI = pygame.transform.smoothscale(reset_UI, (50, 50))
     screen.blit(reset_UI, reset_button.topleft)  # Use rect to position
 
-    # rn it set to seconds and milliseconds change to be minutes and seconds
     # Countdown logic
     if timer_running:
-        if timer_seconds > 0:
-            timer_seconds -= 1
-        elif timer_minutes > 0:
-            timer_minutes -= 1
-            timer_seconds = 59
-        else:
-            timer_running = False  # Stop timer when it reaches zero
-            finish = True
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - last_update_time
+
+        if elapsed_time >= 1000:  # 1000 milliseconds = 1 second
+            last_update_time = current_time
+            if timer_seconds > 0:
+                timer_seconds -= 1
+            elif timer_minutes > 0:
+                timer_minutes -= 1
+                timer_seconds = 59
+            else:
+                timer_running = False  # Stop timer when it reaches zero
+                finish = True
+                # add beeping code here
 
     # Display timer
     time_text = font.render(f"{timer_minutes:02}:{timer_seconds:02}", True, DARKBLUE)
-    screen.blit(time_text, (50, 455))
-
+    screen.blit(time_text, (375, 462))
 
     pygame.draw.circle(screen, GRAY, (403, 263), 200, 5)
 
@@ -364,9 +369,10 @@ while True:
                 elif stop_button.collidepoint(mouse_x, mouse_y) and timer_running == True:    # Click on stop button
                     timer_running = False
                 elif reset_button.collidepoint(mouse_x, mouse_y):
-                    # add a way to reset the timer countdown
                     timer_running = False
                     finish = True
+                    timer_minutes = time_set
+                    timer_seconds = 0
                 elif plus_button.collidepoint(mouse_x, mouse_y) and finish == True:  # Click on Plus button
                     if time_set < 60:
                         time_set += 5
