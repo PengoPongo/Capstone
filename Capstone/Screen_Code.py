@@ -82,7 +82,6 @@ def draw_timer_spokes(color):
 
 # Display the current image in the center of the circle (if available)
 def display_image():
-
     if image_files:
         current_image_path = os.path.join(image_folder, image_files[current_image_index])  # Get path of current image
         try:
@@ -95,16 +94,20 @@ def display_image():
         except Exception as e:
             print(f"Error loading image {current_image_path}: {e}")
 
-# Display shrinking circle covering the image
-def draw_timer_circle(screen, radius, time_remaining):
-    time_remaining = time_remaining * 60
-    center = (400, 260)  # Center of the circle
+# Display a circle waning for the timer
+def draw_timer_circle(screen, center, radius, time_remaining, total_time):
     full_circle = 360  # Full circle in degrees
-    arc_angle = (full_circle * time_remaining) / max_time_secs  # Angle to shrink based on time remaining
+    time_remaining = time_remaining * 60
+    remaining_angle = (time_remaining / total_time) * full_circle  # Remaining angle in degrees
 
-    # Draw the arc (remaining time part)
-    pygame.draw.arc(screen, BLUE, (center[0] - radius, center[1] - radius, radius * 2, radius * 2),
-                    math.radians(90), math.radians(90 + arc_angle), width=200)
+    # Draw the remaining portion as a "pie slice"
+    points = [center]  # Start at the center of the circle
+    for angle in range(0, int(remaining_angle) + 1):
+        x = center[0] + radius * math.cos(math.radians(270-angle))
+        y = center[1] + radius * math.sin(math.radians(270-angle))
+        points.append((x, y))
+
+    pygame.draw.polygon(screen, BLUE, points)
 
 # Home screen display function
 def display_home_screen():
@@ -293,7 +296,7 @@ def display_timer_screen():
                 finish = True
                 # add beeping code here
 
-    # Display timer
+    # Display digital timer
     time_text = font.render(f"{timer_minutes:02}:{timer_seconds:02}", True, DARKBLUE)
     screen.blit(time_text, (375, 462))
 
@@ -303,7 +306,10 @@ def display_timer_screen():
 
     # Draw the timer circle
     temp_time = timer_minutes+(timer_seconds/60)
-    draw_timer_circle(screen, 198, temp_time)
+    if temp_time > 0.16666666666:
+        draw_timer_circle(screen, (400, 260), 198, temp_time, max_time_secs)
+    elif temp_time <= 0.16666666666 and temp_time > 0:
+        pygame.draw.line(screen, BLUE, (400, 260), (399, 90), 2)
 
     draw_timer_spokes(DARKBLUE)
 
@@ -352,6 +358,7 @@ while True:
                     finish = True
                     timer_minutes = time_set
                     timer_seconds = 0
+                    # add stop to beeping here
                 elif plus_button.collidepoint(mouse_x, mouse_y) and finish == True:  # Click on Plus button
                     if time_set < 60:
                         time_set += 5
