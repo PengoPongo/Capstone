@@ -11,7 +11,7 @@ pygame.mixer.init()  # Initialize the pygame mixer
 alarm_sound = pygame.mixer.Sound('alarm.mp3')  # Load the MP3 alarm sound
 
 
-USB_DEVICE_NAME = 'ARIAS' #Change name to USB device name as needed
+USB_DEVICE_NAME = 'ARIAS' #Change current name to USB device name as needed
 DEVICE_USERNAME = os.getlogin()
 
 # Define colors
