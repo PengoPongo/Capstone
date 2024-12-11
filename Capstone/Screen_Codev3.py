@@ -2,16 +2,18 @@ import pygame
 import math
 import os, socket
 from sys import exit
+from gpiozero import PWMOutputDevice
+from time import sleep
+import time
+
 
 pygame.init()
 screen = pygame.display.set_mode((800, 480),pygame.NOFRAME)  # Setting screen size
 clock = pygame.time.Clock()  # Sets up clock in project
 
-pygame.mixer.init()  # Initialize the pygame mixer
-alarm_sound = pygame.mixer.Sound('alarm.mp3')  # Load the MP3 alarm sound
+reset_alarm = False  # This will track if reset was pressed
 
-
-USB_DEVICE_NAME = 'ARIAS' #Change current name to USB device name as needed
+USB_DEVICE_NAME = 'IMAGES'
 DEVICE_USERNAME = os.getlogin()
 
 # Define colors
@@ -50,7 +52,30 @@ def loadImages() -> None:
     else:
         print(default_image_folder)
         image_files = [ os.path.join(default_image_folder, f) for f in os.listdir(default_image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp'))]
-        
+
+
+# Initialize PWM for the alarm
+speaker = PWMOutputDevice(pin=18)
+
+# Function to play alarm tones for 5 seconds
+def play_alarm(speaker):
+    try:
+        print("Playing alarm...")
+        start_time = time.time()
+        tones = [440, 880]  # A4 and A5 tones for the alarm
+        while time.time() - start_time < 5:  # Alarm plays for 5 seconds
+            for freq in tones:  # Cycle through the two frequencies
+                speaker.frequency = freq
+                speaker.value = 0.5  # Set volume
+                sleep(0.2)  # Reduced time for faster tone change
+            speaker.off()
+            sleep(0.1)  # Small gap between frequencies
+        print("Alarm finished.")
+    except KeyboardInterrupt:
+        print("Alarm interrupted.")
+    finally:
+        speaker.off()
+
 
 # Creates a circular mask for the image
 def crop_image_to_circle(image, radius):
@@ -129,6 +154,26 @@ def draw_timer_circle(screen, center, radius, time_remaining, total_time):
         points.append((x, y))
 
     pygame.draw.polygon(screen, BLUE, points)
+
+
+# Function to stop the alarm
+def stop_alarm(speaker):
+    speaker.off()
+
+# Timer countdown function (for example, when timer reaches 0)
+def timer_tick():
+    global timer_running, timer_seconds, timer_minutes, finish, reset_alarm
+    if reset_alarm:  # If reset is pressed
+        stop_alarm(speaker)  # Stop the alarm
+        finish = True  # Reset the finish flag
+        reset_alarm = False  # Reset the reset flag
+        return
+
+    if timer_seconds <= 0 and finish:  # When the timer reaches zero
+        finish = False  # Stop the timer
+        play_alarm(speaker)  # Trigger the alarm
+
+
 
 # Home screen display function
 def display_home_screen():
@@ -237,8 +282,8 @@ def display_timer_screen():
     display_title("Timer", BLUE, DARKBLUE)
 
     button_width, button_height = 50, 50
-    home_button = pygame.Rect(5, 70, button_width, button_height)  # Home button
-    image_button = pygame.Rect(5, 135, button_width, button_height)  # Image Selection button
+    home_button = pygame.Rect(5, 70, button_width, button_height) #Home button
+    image_button = pygame.Rect(5, 135, button_width, button_height)  # Image Selectiion button
     side_bar = pygame.Rect(-15, 60, 80, 135)
 
     # Draw sidebar with shadow, color, and outline
@@ -318,7 +363,7 @@ def display_timer_screen():
                 timer_running = False  # Stop timer when it reaches zero
                 finish = True
                 # add beeping code here
-                alarm_sound.play()  # Play the alarm when time reaches 0
+                timer_tick()  # Play the alarm when time reaches 0
 
 
     # Display digital timer
@@ -384,7 +429,8 @@ while True:
                     timer_minutes = time_set
                     timer_seconds = 0
                     # add stop to beeping here
-                    alarm_sound.stop()  
+                    speaker.off()
+                    reset_alarm = True
                 elif plus_button.collidepoint(mouse_x, mouse_y) and finish == True:  # Click on Plus button
                     if time_set < 60:
                         time_set += 5
