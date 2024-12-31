@@ -35,7 +35,7 @@ The Kin\:pathic Visual Timer is designed to assist in time management by display
 ## Software Specifications
 
 - **Programming Language:** Python
-- **Libraries Used:** Pygame for graphics, interaction and Gpiozero  for setting up pins on Rpi
+- **Libraries Used:** Pygame for graphics, interaction and Gpiozero  for setting up pins on Rpi (to speaker for beeping)
 - **Timer Logic:** Managed by the Raspberry Pi to ensure precision
 - **Modes:** Includes home screen, image selection, and timer countdown modes
 
