@@ -15,7 +15,7 @@ Welcome to the Kin\:pathic Visual Timer! This guide provides step-by-step instru
 
 The Kin\:pathic Visual Timer is designed to assist in time management by displaying a calming, custom image of your choice during countdowns. It is especially useful for educational environments and individuals with unique learning needs. The project is part of a capstone initiative, emphasizing usability and accessibility.
 
-For Full [User Manual](https://docs.google.com/document/d/1zKiSkMkynA15LEDlfgi2N6uZ_dLe_kZWn2Y_cHhkKe0/edit?usp=sharing) click here
+For Full [User Manual](https://docs.google.com/document/d/1zKiSkMkynA15LEDlfgi2N6uZ_dLe_kZWn2Y_cHhkKe0/edit?usp=sharing) click here.
 
 ## Features
 
